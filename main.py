@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 import random
 
-st.title("🎓 University Exam Scheduling using Genetic Algorithm")
+st.title("University Exam Scheduling using Genetic Algorithm")
 
 # Load classroom data
 df = pd.read_csv("classrooms (Exam University Scheduling).csv")
