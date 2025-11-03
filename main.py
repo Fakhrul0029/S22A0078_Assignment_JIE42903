@@ -4,23 +4,12 @@ import streamlit as st
 import pandas as pd
 import random
 
-# Load dataset
-@st.cache_data
-def load_dataset(file_path):
-    df = pd.read_csv(file_path)
-    return df
+st.title("🎓 University Exam Scheduling using Genetic Algorithm")
 
-st.title("University Exam Scheduling using Genetic Algorithm")
-
-uploaded_file = st.file_uploader("Upload classroom CSV file", type=["csv"])
-
-if uploaded_file:
-    df = load_dataset(uploaded_file)
-    st.success("Dataset loaded successfully")
-    st.dataframe(df.head())
-else:
-    st.warning("Please upload your CSV dataset to proceed")
-    st.stop()
+# Load classroom data
+df = pd.read_csv("classrooms (Exam University Scheduling).csv")
+st.success("Dataset loaded successfully")
+st.dataframe(df)
 
 # Creation of example exam data
 exams = [
