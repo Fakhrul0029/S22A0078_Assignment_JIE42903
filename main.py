@@ -66,14 +66,14 @@ def mutate(schedule):
     schedule[i], schedule[j] = schedule[j], schedule[i]
     return schedule
 
-def genetic_algorithm(df, generations, pop_size, co_rate, mut_rate, elitism):
+def genetic_algorithm(df, generations, pop_size, co_rate, mut_rate):
     population = initialize_population(df, pop_size)
 
     for _ in range(generations):
         scored = [(fitness_function(s), s) for s in population]
         scored.sort(reverse=True, key=lambda x: x[0])
 
-        new_population = [s for _, s in scored[:elitism]]
+        new_population = []
 
         while len(new_population) < pop_size:
             parent1, parent2 = random.choices(population, k=2)
@@ -116,7 +116,6 @@ mut3 = st.slider("Mutation Rate (Trial 3)", 0.01, 0.05, 0.05, step=0.01, key="mu
 
 generations = st.number_input("Generations", 10, 500, 100)
 pop_size = st.number_input("Population Size", 10, 200, 50)
-elitism = st.number_input("Elitism Size", 1, 10, 2)
 
 # Run and display results
 if st.button("🚀 Run All 3 Trials"):
@@ -125,7 +124,7 @@ if st.button("🚀 Run All 3 Trials"):
         st.divider()
         st.markdown(f"## 🔹 Trial {i}: CO_R = {co}, MUT_R = {mut}")
 
-        best_schedule, best_fitness = genetic_algorithm(df, generations, pop_size, co, mut, elitism)
+        best_schedule, best_fitness = genetic_algorithm(df, generations, pop_size, co, mut)
 
         results = []
         for exam, classroom in zip(exams, best_schedule):
