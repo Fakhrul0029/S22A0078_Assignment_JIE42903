@@ -97,20 +97,20 @@ def genetic_algorithm(df, generations, pop_size, co_rate, mut_rate):
 
 # Streamlit interface for GA parameters
 
-st.subheader("⚙️ Genetic Algorithm Parameters")
+st.subheader("Genetic Algorithm Parameters")
 
 # Trial 1
-st.markdown("### 🧪 Trial 1 Parameters")
+st.markdown("Trial 1")
 co1 = st.slider("Crossover Rate (Trial 1)", 0.0, 0.95, 0.8, step=0.01, key="co1")
 mut1 = st.slider("Mutation Rate (Trial 1)", 0.01, 0.05, 0.02, step=0.01, key="mut1")
 
 # Trial 2
-st.markdown("### 🧪 Trial 2 Parameters")
+st.markdown("Trial 2")
 co2 = st.slider("Crossover Rate (Trial 2)", 0.0, 0.95, 0.7, step=0.01, key="co2")
 mut2 = st.slider("Mutation Rate (Trial 2)", 0.01, 0.05, 0.03, step=0.01, key="mut2")
 
 # Trial 3
-st.markdown("### 🧪 Trial 3 Parameters")
+st.markdown("Trial 3")
 co3 = st.slider("Crossover Rate (Trial 3)", 0.0, 0.95, 0.9, step=0.01, key="co3")
 mut3 = st.slider("Mutation Rate (Trial 3)", 0.01, 0.05, 0.05, step=0.01, key="mut3")
 
@@ -118,7 +118,7 @@ generations = st.number_input("Generations", 10, 500, 100)
 pop_size = st.number_input("Population Size", 10, 200, 50)
 
 # Run and display results
-if st.button("🚀 Run All 3 Trials"):
+if st.button("Run All 3 Trials"):
     trial_params = [(co1, mut1), (co2, mut2), (co3, mut3)]
     for i, (co, mut) in enumerate(trial_params, start=1):
         st.divider()
