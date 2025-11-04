@@ -10,7 +10,7 @@ st.title("TV Program Scheduling using Genetic Algorithm")
 st.subheader("Program Ratings Dataset")
 
 file_path = "program_ratings(modified).xlsx" 
-df = pd.read_csv(file_path)
+df = pd.read_excel(file_path)
 st.success("Dataset loaded")
 st.dataframe(df)
 
