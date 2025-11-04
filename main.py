@@ -1,102 +1,83 @@
-# University Exam Scheduling using Genetic Algorithm and Streamlit Interface 
+# TV Program Scheduling using Genetic Algorithm and Streamlit Interface 
 
 import streamlit as st
 import pandas as pd
 import random
 
-st.title("University Exam Scheduling using Genetic Algorithm")
+st.title("TV Program Scheduling using Genetic Algorithm")
 
-# Load classroom data
-df = pd.read_csv("classrooms (Exam University Scheduling).csv")
-st.success("Dataset loaded successfully")
+# Load dataset
+st.subheader("Program Ratings Dataset")
+
+file_path = "program_ratings(modified).csv" 
+df = pd.read_csv(file_path)
+st.success("Dataset loaded")
 st.dataframe(df)
 
-# Creation of example exam data
-exams = [
-    {"name": "Mathematics", "students": 40, "type": "Lecture Hall"},
-    {"name": "Artificial Intelligence", "students": 30, "type": "Lab"},
-    {"name": "Digital Business", "students": 25, "type": "Classroom"},
-    {"name": "Software Engineering", "students": 35, "type": "Lecture Hall"},
-    {"name": "Networking", "students": 28, "type": "Lab"},
-    {"name": "Cybersecurity", "students": 38, "type": "Lab"},
-    {"name": "Database Systems", "students": 32, "type": "Classroom"},
-    {"name": "Statistics", "students": 45, "type": "Lecture Hall"},
-    {"name": "Entrepreneurship", "students": 26, "type": "Classroom"},
-    {"name": "Machine Learning", "students": 33, "type": "Lab"},
-]
+# Convert dataset to readable
+program_ratings = {}
+for _, row in df.iterrows():
+    program = row.iloc[0]
+    ratings = list(row.iloc[1:].values)
+    program_ratings[program] = ratings
 
-# Fitness function
+all_programs = list(program_ratings.keys())
+all_time_slots = list(range(6, 6 + len(df.columns) - 1))
+
+
+# Genetic algorithm core
 def fitness_function(schedule):
-    total_score = 0
-    for exam, classroom in zip(exams, schedule):
-        room_capacity = classroom['capacity']
-        room_type = classroom['room_type']
+    """Calculate total rating for a schedule."""
+    total_rating = 0
+    for time_slot, program in enumerate(schedule):
+        total_rating += program_ratings[program][time_slot]
+    return total_rating
 
-        # Penalize overcapacity
-        if exam['students'] > room_capacity:
-            total_score -= (exam['students'] - room_capacity) * 2
-        else:
-            total_score += exam['students']
-
-        # Reward correct room type match
-        if exam['type'] == room_type:
-            total_score += 10
-        elif exam['type'] in room_type:  # partial match
-            total_score += 5
-        else:
-            total_score -= 5
-
-    return total_score
-
-# Core GA functions
-def create_random_schedule(df):
-    return random.sample(df.to_dict('records'), len(exams))
-
-def initialize_population(df, pop_size):
-    return [create_random_schedule(df) for _ in range(pop_size)]
-
-def crossover(parent1, parent2):
-    point = random.randint(1, len(exams) - 2)
-    child1 = parent1[:point] + parent2[point:]
-    child2 = parent2[:point] + parent1[point:]
+def crossover(schedule1, schedule2):
+    """Single-point crossover."""
+    crossover_point = random.randint(1, len(schedule1) - 2)
+    child1 = schedule1[:crossover_point] + schedule2[crossover_point:]
+    child2 = schedule2[:crossover_point] + schedule1[crossover_point:]
     return child1, child2
 
 def mutate(schedule):
-    i, j = random.sample(range(len(schedule)), 2)
-    schedule[i], schedule[j] = schedule[j], schedule[i]
+    """Randomly replace one program in the schedule."""
+    mutation_point = random.randint(0, len(schedule) - 1)
+    new_program = random.choice(all_programs)
+    schedule[mutation_point] = new_program
     return schedule
 
-def genetic_algorithm(df, generations, pop_size, co_rate, mut_rate):
-    population = initialize_population(df, pop_size)
+def genetic_algorithm(generations, population_size, crossover_rate, mutation_rate):
+    """Run the GA optimization."""
+    population = [random.sample(all_programs, len(all_programs)) for _ in range(population_size)]
 
     for _ in range(generations):
-        scored = [(fitness_function(s), s) for s in population]
-        scored.sort(reverse=True, key=lambda x: x[0])
-
+        population.sort(key=fitness_function, reverse=True)
         new_population = []
 
-        while len(new_population) < pop_size:
+        while len(new_population) < population_size:
             parent1, parent2 = random.choices(population, k=2)
-            if random.random() < co_rate:
+
+            if random.random() < crossover_rate:
                 child1, child2 = crossover(parent1, parent2)
             else:
-                child1, child2 = parent1[:], parent2[:]
+                child1, child2 = parent1.copy(), parent2.copy()
 
-            if random.random() < mut_rate:
+            if random.random() < mutation_rate:
                 child1 = mutate(child1)
-            if random.random() < mut_rate:
+            if random.random() < mutation_rate:
                 child2 = mutate(child2)
 
             new_population.extend([child1, child2])
 
-        population = new_population[:pop_size]
+        population = new_population[:population_size]
 
-    best_schedule = max(population, key=lambda s: fitness_function(s))
+    best_schedule = max(population, key=fitness_function)
     best_fitness = fitness_function(best_schedule)
     return best_schedule, best_fitness
 
-# Streamlit interface for GA parameters
 
+# Streamlit interface
 st.subheader("Genetic Algorithm Parameters")
 
 # Trial 1
@@ -117,31 +98,33 @@ mut3 = st.slider("Mutation Rate (Trial 3)", 0.01, 0.05, 0.05, step=0.01, key="mu
 generations = st.number_input("Generations", 10, 500, 100)
 pop_size = st.number_input("Population Size", 10, 200, 50)
 
+
 # Run and display results
 if st.button("Run All 3 Trials"):
     trial_params = [(co1, mut1), (co2, mut2), (co3, mut3)]
+
     for i, (co, mut) in enumerate(trial_params, start=1):
         st.divider()
         st.markdown(f"## 🔹 Trial {i}: CO_R = {co}, MUT_R = {mut}")
 
-        best_schedule, best_fitness = genetic_algorithm(df, generations, pop_size, co, mut)
+        best_schedule, best_fitness = genetic_algorithm(generations, pop_size, co, mut)
 
         results = []
-        for exam, classroom in zip(exams, best_schedule):
+        for hour, program in zip(all_time_slots, best_schedule):
             results.append({
-                "Exam": exam['name'],
-                "Students": exam['students'],
-                "Preferred Room Type": exam['type'],
-                "Assigned Room": f"{classroom['building_name']}-{classroom['room_number']}",
-                "Room Type": classroom['room_type'],
-                "Room Capacity": classroom['capacity']
+                "Hour": f"{hour}:00",
+                "Program": program,
+                "Ratings": program_ratings[program][hour - 6]
             })
 
         result_df = pd.DataFrame(results)
         st.dataframe(result_df)
-        st.success(f"Best Fitness Score: {best_fitness}")
+        st.success(f"Best Fitness (Total Ratings): {best_fitness}")
 
-        # save result for documentation
-        result_df.to_csv(f"trial_{i}_result.csv", index=False)
+        # Save each trial result for documentation
+        result_df.to_csv(f"trial_{i}_tv_schedule.csv", index=False)
 
-st.info("Adjust the parameters above to experiment and observe how crossover and mutation rates affect scheduling efficiency")
+st.info("Adjust the crossover and mutation rates above to observe their impact on total ratings performance.")
+
+
+
